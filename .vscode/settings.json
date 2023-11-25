@@ -1,0 +1,7 @@
+{
+    "python.pythonPath":"C:\\Users\\Yousef Elbrolosy\\anaconda3\\envs\\qiskit8-stable\\python.exe",
+
+    "python.terminal.activateEnvironment": true,
+
+    "terminal.integrated.shell.windows": "C:\\Windows\\System32\\cmd.exe"
+}
