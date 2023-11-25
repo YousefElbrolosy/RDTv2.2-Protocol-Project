@@ -9,6 +9,7 @@ class SenderProcess:
         :param buffer:  a python list of characters represent the outgoing message
         :return: no return value
         """
+
         SenderProcess.__buffer = buffer
         return
 
@@ -38,7 +39,7 @@ class RDTSender:
         :return: the ASCII code of the character, for example ASCII('A') = 65
         """
         # TODO provide your own implementation
-        checksum = None  # you need to change that
+        checksum = ord(data)  # you need to change that
         return checksum
 
     @staticmethod
@@ -61,7 +62,10 @@ class RDTSender:
         :return: True -> if the reply is corrupted | False ->  if the reply is NOT corrupted
         """
         # TODO provide your own implementation
-        pass
+        if ord(reply['ack']) == reply['checksum']:
+            return False
+        else:
+            return True
 
     @staticmethod
     def is_expected_seq(reply, exp_seq):
@@ -71,7 +75,10 @@ class RDTSender:
         :return: True -> if ack in the reply match the   expected sequence number otherwise False
         """
         # TODO provide your own implementation
-        pass
+        if reply['ack'] == exp_seq:
+            return True
+        else: 
+            return False
 
     @staticmethod
     def make_pkt(seq, data, checksum):
@@ -99,9 +106,25 @@ class RDTSender:
 
             checksum = RDTSender.get_checksum(data)
             pkt = RDTSender.make_pkt(self.sequence, data, checksum)
+            temp_packet = RDTSender.clone_packet(pkt)
             reply = self.net_srv.udt_send(pkt)
 
+            
+            if reply:
+                print("Sender received {'ack':" +str(reply['ack'])+", 'checksum':" + str(reply['checksum']))
+            
+                #if not RDTSender.is_expected_seq(reply,self.sequence):
+                if not RDTSender.is_expected_seq(reply,pkt['sequence_number']):
+                    if RDTSender.is_corrupted(reply):
+                        print("network_layer: corruption occured {'ack':" +str(reply['ack'])+", 'checksum':" + str(reply['checksum']))
+            print("Sender expecting seq_num:"+ str(self.sequence))
+            print("Sender sending: {'sequence_number':" +str(pkt['sequence_number'])+", 'data':" + str(pkt['data']), "'checksum':" + str(pkt['checksum']))
+            
+            
+            
+
             #----------------
+            #testing termo
 
 
         print(f'Sender Done!')
