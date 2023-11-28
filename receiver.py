@@ -32,7 +32,10 @@ class RDTReceiver:
             :return: True -> if the reply is corrupted | False ->  if the reply is NOT corrupted
         """
         # TODO provide your own implementation
-        pass
+        if ord(packet['data']) == packet['checksum']:
+            return False
+        else:
+            return True
 
     @staticmethod
     def is_expected_seq(rcv_pkt, exp_seq):
@@ -42,7 +45,10 @@ class RDTReceiver:
          :return: True -> if ack in the reply match the   expected sequence number otherwise False
         """
         # TODO provide your own implementation
-        pass
+        if rcv_pkt['sequence_number'] == exp_seq:
+            return True
+        else: 
+            return False
 
 
     @staticmethod
@@ -65,11 +71,24 @@ class RDTReceiver:
         """
 
         # TODO provide your own implementation
+        if rcv_pkt:
+            print("Receiver: expecting seq_num:"+ str(self.sequence))
+            if not RDTReceiver.is_corrupted(rcv_pkt):
 
-        # deliver the data to the process in the application layer
-        ReceiverProcess.deliver_data(rcv_pkt['data'])
+                
+                print("Receiver: reply with: {'ack':" +str(rcv_pkt['sequence_number'])+", 'checksum':" + str(ord(rcv_pkt['sequence_number']))+"}")
+            else:
+                print("network_layer: corruption occured {'sequence_number':" +str(rcv_pkt['sequence_number'])+", 'data':"+str(rcv_pkt['data'])+", 'checksum':" + str(rcv_pkt['checksum']))
+                if rcv_pkt['sequence_number'] == '0':
+                    self.sequence = '1'
+                elif rcv_pkt['sequence_number'] == '1':
+                    self.sequence = '0'
+                print("Receiver: reply with: {'ack':" +str(self.sequence)+", 'checksum':" + str(ord(self.sequence))+"}")
 
-        #reply_pkt = RDTReceiver.make_reply_pkt()
-        #return reply_pkt
+            # deliver the data to the process in the application layer
+            ReceiverProcess.deliver_data(rcv_pkt['data'])
 
-        return None
+            reply_pkt = RDTReceiver.make_reply_pkt(self.sequence,ord(self.sequence))
+            return reply_pkt
+
+        #return None
