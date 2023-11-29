@@ -71,6 +71,22 @@ class RDTReceiver:
         """
 
         # TODO provide your own implementation
+        ack = self.sequence
+        if RDTReceiver.is_corrupted(rcv_pkt):
+            print("network_layer: corruption occured {'sequence_number': " +str(rcv_pkt['sequence_number'])+", 'data': " + str(rcv_pkt['data'])+", 'checksum': "+ str(rcv_pkt['checksum']) +"}")
+            print("Receiver: expecting seq_num: "+str(self.sequence))
+            if self.sequence == '0':
+                ack = '1'
+            elif self.sequence == '1':
+                ack = '0'
+            print("Receiver: reply with: {"+"'ack':"+str(ack)+", 'checksum':"+str(ord(ack))+"}")
+        else:
+            print("Receiver: expecting seq_num: "+str(self.sequence))
+            print("Receiver: reply with: {"+"'ack':"+str(rcv_pkt['sequence_number'])+", 'checksum':"+str(ord(rcv_pkt['sequence_number']))+"}")
+
+
+
+        """
         if rcv_pkt:
             print("Receiver: expecting seq_num:"+ str(self.sequence))
             if not RDTReceiver.is_corrupted(rcv_pkt):
@@ -85,10 +101,16 @@ class RDTReceiver:
                     self.sequence = '0'
                 print("Receiver: reply with: {'ack':" +str(self.sequence)+", 'checksum':" + str(ord(self.sequence))+"}")
 
-            # deliver the data to the process in the application layer
-            ReceiverProcess.deliver_data(rcv_pkt['data'])
+        """
+        # deliver the data to the process in the application layer
+        ReceiverProcess.deliver_data(rcv_pkt['data'])
 
-            reply_pkt = RDTReceiver.make_reply_pkt(self.sequence,ord(self.sequence))
-            return reply_pkt
+        reply_pkt = RDTReceiver.make_reply_pkt(self.sequence,ord(self.sequence))
 
-        #return None
+        if self.sequence == '0':
+            self.sequence = '1'
+        elif self.sequence == '1':
+            self.sequence = '0'
+
+        return reply_pkt
+
