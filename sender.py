@@ -100,45 +100,29 @@ class RDTSender:
         :param process_buffer:  a list storing the message the sender process wish to send to the receiver process
         :return: terminate without returning any value
         """
-        count = 0
         # for every character in the buffer
-        for i,data in enumerate(process_buffer):
-
+        for data in process_buffer:
+            #count = 0
             checksum = RDTSender.get_checksum(data)
             pkt = RDTSender.make_pkt(self.sequence, data, checksum)
             temp_packet = RDTSender.clone_packet(pkt)
-            while True:
-                 
-                print("Sender expecting seq_num: "+str(self.sequence))
-                print("Sender sending:{'sequence_number': "+str(self.sequence)+", 'data': "+str(pkt['data'])+ ", 'checksum': "+str(pkt['checksum'])+"}")
+            print("sender sending:"+str(pkt))
+            reply = self.net_srv.udt_send(pkt)
+            
+            while RDTSender.is_corrupted(reply) or not RDTSender.is_expected_seq(reply, self.sequence):
+                print("corruption occured in reply")
+                reply = self.net_srv.udt_send(RDTSender.make_pkt(self.sequence, data, checksum))
+            if not RDTSender.is_corrupted(reply) and RDTSender.is_expected_seq(reply, self.sequence):
+                if self.sequence == '0':
+                    self.sequence = '1'
+                elif self.sequence == '1':
+                    self.sequence = '0'
 
-                
-                reply = self.net_srv.udt_send(pkt)
+            
+            
 
-                
-                if RDTSender.is_corrupted(reply):
-                    print("network_layer: corruption occured {'ack':" +str(reply['ack'])+", 'checksum':" + str(reply['checksum'])+"}")
-                
-                if not (i==0 and count==0):
-                    print("Sender received {'ack':" +str(reply['ack'])+", 'checksum':" + str(reply['checksum'])+"}")
-                
-                if RDTSender.is_expected_seq(reply,self.sequence):
-                    if self.sequence == '0':
-                        self.sequence = '1'
-                    elif self.sequence == '1':
-                        self.sequence = '0'
-                    break
-                else:
-                    reply = self.net_srv.udt_send(pkt)
-                    count+=1
             
                 
                 
-                
-
-            #----------------
-            #testing termo
-
-
         print(f'Sender Done!')
         return
