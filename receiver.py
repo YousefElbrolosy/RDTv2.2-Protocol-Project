@@ -73,8 +73,14 @@ class RDTReceiver:
         # TODO provide your own implementation
         # deliver the data to the process in the application layer
         ack = self.sequence
+        print("--------------------------------------")
+        print("expected sequence no is "+str(self.sequence))
+        print("received sequence no is "+str(rcv_pkt['sequence_number']))
+        print("--------------------------------------")
         if RDTReceiver.is_corrupted(rcv_pkt) or not RDTReceiver.is_expected_seq(rcv_pkt, self.sequence):
-            print("corruption occured in sender packet")
+            
+            if RDTReceiver.is_corrupted(rcv_pkt):
+                print("corruption occured in sender packet")
             if self.sequence == '0':
                 ack = '1'
             elif self.sequence == '1':

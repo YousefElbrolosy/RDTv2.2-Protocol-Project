@@ -108,12 +108,13 @@ class RDTSender:
             temp_packet = RDTSender.clone_packet(pkt)
             print("sender sending:"+str(pkt))
             reply = self.net_srv.udt_send(temp_packet)
-            
+            print("sender received:"+str(reply))
             while RDTSender.is_corrupted(reply) or not RDTSender.is_expected_seq(reply, self.sequence):
                 temp_packet = RDTSender.clone_packet(pkt)
                 print("corruption occured in reply")
                 print("sender sending:"+str(pkt))
                 reply = self.net_srv.udt_send(temp_packet)
+                print("sender received:"+str(reply))
             if not RDTSender.is_corrupted(reply) and RDTSender.is_expected_seq(reply, self.sequence):
                 if self.sequence == '0':
                     self.sequence = '1'
