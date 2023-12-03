@@ -69,26 +69,39 @@ class RDTReceiver:
         :param rcv_pkt: a packet delivered by the network layer 'udt_send()' to the receiver
         :return: the reply packet
         """
-
+        print("reciever revieved"+str(rcv_pkt))
         # TODO provide your own implementation
-        if rcv_pkt:
-            print("Receiver: expecting seq_num:"+ str(self.sequence))
-            if not RDTReceiver.is_corrupted(rcv_pkt):
-
-                
-                print("Receiver: reply with: {'ack':" +str(rcv_pkt['sequence_number'])+", 'checksum':" + str(ord(rcv_pkt['sequence_number']))+"}")
-            else:
-                print("network_layer: corruption occured {'sequence_number':" +str(rcv_pkt['sequence_number'])+", 'data':"+str(rcv_pkt['data'])+", 'checksum':" + str(rcv_pkt['checksum']))
-                if rcv_pkt['sequence_number'] == '0':
-                    self.sequence = '1'
-                elif rcv_pkt['sequence_number'] == '1':
-                    self.sequence = '0'
-                print("Receiver: reply with: {'ack':" +str(self.sequence)+", 'checksum':" + str(ord(self.sequence))+"}")
-
-            # deliver the data to the process in the application layer
+        # deliver the data to the process in the application layer
+        ack = self.sequence
+        print("--------------------------------------")
+        print("expected sequence no is "+str(self.sequence))
+        print("received sequence no is "+str(rcv_pkt['sequence_number']))
+        print("--------------------------------------")
+        if RDTReceiver.is_corrupted(rcv_pkt) or not RDTReceiver.is_expected_seq(rcv_pkt, self.sequence):
+            
+            if RDTReceiver.is_corrupted(rcv_pkt):
+                print("corruption occured in sender packet")
+            if self.sequence == '0':
+                ack = '1'
+            elif self.sequence == '1':
+                ack = '0'
+            
+            reply_pkt = RDTReceiver.make_reply_pkt(ack,ord(ack))
+            
+            
+        elif not RDTReceiver.is_corrupted(rcv_pkt) and RDTReceiver.is_expected_seq(rcv_pkt, self.sequence):
             ReceiverProcess.deliver_data(rcv_pkt['data'])
-
             reply_pkt = RDTReceiver.make_reply_pkt(self.sequence,ord(self.sequence))
-            return reply_pkt
+            if self.sequence == '0':
+                self.sequence = '1'
+            elif self.sequence == '1':
+                self.sequence = '0'
+
+
+         
+        print("receiver is replying with"+str(reply_pkt))
+        return reply_pkt
 
         #return None
+
+

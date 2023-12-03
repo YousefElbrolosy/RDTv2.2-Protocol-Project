@@ -102,44 +102,30 @@ class RDTSender:
         """
         # for every character in the buffer
         for data in process_buffer:
-
+            #count = 0
             checksum = RDTSender.get_checksum(data)
             pkt = RDTSender.make_pkt(self.sequence, data, checksum)
             temp_packet = RDTSender.clone_packet(pkt)
-            reply = self.net_srv.udt_send(pkt)
-
-            
-            if reply:
-
-                while RDTSender.is_corrupted(reply) or not RDTSender.is_expected_seq(reply,self.sequence):
-                    print("Sender received {'ack':" +str(reply['ack'])+", 'checksum':" + str(reply['checksum']))
-                    if RDTSender.is_corrupted(reply):
-                        print("network_layer: corruption occured {'ack':" +str(reply['ack'])+", 'checksum':" + str(reply['checksum']))
-                        reply = self.net_srv.udt_send(pkt)
-                    
-                
-                    if not RDTSender.is_expected_seq(reply,self.sequence):
-                        reply = self.net_srv.udt_send(pkt)
-                    print("Sender expecting seq_num:"+ str(self.sequence))
-                    print("Sender sending: {'sequence_number':" +str(self.sequence)+", 'data':" + str(pkt['data']), "'checksum':" + str(pkt['checksum'])+"}")
-                
+            print("sender sending:"+str(pkt))
+            reply = self.net_srv.udt_send(temp_packet)
+            print("sender received:"+str(reply))
+            while RDTSender.is_corrupted(reply) or not RDTSender.is_expected_seq(reply, self.sequence):
+                temp_packet = RDTSender.clone_packet(pkt)
+                print("corruption occured in reply")
+                print("sender sending:"+str(pkt))
+                reply = self.net_srv.udt_send(temp_packet)
+                print("sender received:"+str(reply))
+            if not RDTSender.is_corrupted(reply) and RDTSender.is_expected_seq(reply, self.sequence):
                 if self.sequence == '0':
                     self.sequence = '1'
                 elif self.sequence == '1':
                     self.sequence = '0'
-                print("Sender expecting seq_num:"+ str(self.sequence))
-                print("Sender sending: {'sequence_number':" +str(self.sequence)+", 'data':" + str(pkt['data']), "'checksum':" + str(pkt['checksum']))
-
-            else:
-                print("Sender expecting seq_num:"+ str(self.sequence))
-                print("Sender sending: {'sequence_number':" +str(self.sequence)+", 'data':" + str(pkt['data']), "'checksum':" + str(pkt['checksum'])+ "")
 
             
             
 
-            #----------------
-            #testing termo
-
-
+            
+                
+                
         print(f'Sender Done!')
         return
